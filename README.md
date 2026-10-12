@@ -15,10 +15,20 @@ brew install autrio10x/edge-rt/keystone
 edit $(brew --prefix)/etc/keystone/keystone.toml
 
 brew services start autrio10x/edge-rt/keystone
-keystone --version
+keystone status
 ```
 
 Requires **Apple Silicon (arm64)** and **Docker Desktop** running.
+
+### Status (no log diving)
+
+```bash
+keystone status
+```
+
+Prints `running`, config path, Autrio URL / tenant / serial, IPC socket state,
+and the brew err log path. Does **not** print secrets. Exit `0` if the Runtime
+API socket accepts connections.
 
 ### What you edit
 
