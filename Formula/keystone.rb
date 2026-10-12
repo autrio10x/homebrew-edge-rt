@@ -78,8 +78,8 @@ class Keystone < Formula
       serial = "CHANGE_ME_SERIAL"
       birth_secret = "CHANGE_ME_BIRTH_SECRET"
     EOS
-    example.write example_body
-    # Never overwrite operator identity on upgrade/reinstall.
+    # Never overwrite etc/ on upgrade/reinstall (Homebrew refuses overwrite).
+    example.write example_body unless example.exist?
     conf.write example_body unless conf.exist?
   end
 
