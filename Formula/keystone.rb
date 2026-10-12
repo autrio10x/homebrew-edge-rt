@@ -1,15 +1,12 @@
 # Reference formula — publish copies this to public tap autrio10x/homebrew-edge-rt.
 #
-# Consumers (fully qualified — bare `keystone` is Homebrew-core assembler):
+# Consumers:
 #   brew tap autrio10x/edge-rt
 #   brew install autrio10x/edge-rt/keystone
-#   # edit /opt/homebrew/opt/keystone/sh.brew.keystone.plist
+#   edit $(brew --prefix)/etc/keystone/keystone.toml   # identity only
 #   brew services start autrio10x/edge-rt/keystone
 #
-# Maintainer:
-#   bump Cargo.toml version → make bottle-mac → ./deploy/scripts/publish-mac-bottle.sh
-#
-# --HEAD builds from the private app repo (eng-only; needs Rust + app access).
+# Maintainer: make bottle-mac && ./deploy/scripts/publish-mac-bottle.sh
 
 class Keystone < Formula
   desc "Keystone host authority daemon (Autrio edge runtime)"
@@ -17,7 +14,6 @@ class Keystone < Formula
   version "0.1.0"
   license "MIT"
 
-  # Stable: Mach-O binary from the public edge-rt tap release (arm64 Darwin for now).
   url "https://github.com/autrio10x/homebrew-edge-rt/releases/download/keystone-v#{version}/keystone",
       using: :nounzip
   sha256 "a85cb003e96996224dedf75a96e8b939de8c23aefe25bdded4b0bfa31d59c3a5"
@@ -33,7 +29,10 @@ class Keystone < Formula
     run [opt_bin/"keystone"]
     environment_variables KEYSTONE_SUPERVISOR: "1",
                           KEYSTONE_KEYSTORE_BACKEND: "keychain",
-                          # launchd PATH is minimal — include Homebrew + Docker Desktop CLI.
+                          KEYSTONE_CONFIG: etc/"keystone/keystone.toml",
+                          KEYSTONE_IPC_PATH: var/"keystone/runtime.sock",
+                          KEYSTONE_STORAGE_ROOT: var/"keystone/storage",
+                          KEYSTONE_CREDENTIAL_DIR: var/"keystone/creds",
                           PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Applications/Docker.app/Contents/Resources/bin"
     keep_alive true
     log_path var/"log/keystone.log"
@@ -51,7 +50,7 @@ class Keystone < Formula
       chmod "+x", "keystone"
       bin.install "keystone"
     end
-    # Tap-shipped wipe helper — copy (do not bin.install from tap; EPERM on tap files).
+
     unless (bin/"keystone-clean").exist?
       helper = tap.path/"keystone-clean"
       if helper.exist?
@@ -60,26 +59,45 @@ class Keystone < Formula
         chmod 0755, bin/"keystone-clean"
       end
     end
+
+    # Package layout — no operator mkdir.
     (var/"keystone").mkpath
+    (var/"keystone/storage").mkpath
+    (var/"keystone/creds").mkpath
     (var/"log").mkpath
+    (etc/"keystone").mkpath
+
+    conf = etc/"keystone/keystone.toml"
+    example = etc/"keystone/keystone.toml.example"
+    example_body = <<~EOS
+      # Keystone identity (edit this file — paths are set by the brew service).
+      # Then: brew services start autrio10x/edge-rt/keystone
+
+      autrio_url = "http://127.0.0.1:8002"
+      tenant_id = "00000000-0000-0000-0000-000000000000"
+      serial = "CHANGE_ME_SERIAL"
+      birth_secret = "CHANGE_ME_BIRTH_SECRET"
+    EOS
+    example.write example_body
+    # Never overwrite operator identity on upgrade/reinstall.
+    conf.write example_body unless conf.exist?
   end
 
   def caveats
     <<~EOS
-      Configure identity in ~/.homebrew/services/keystone.env
-      (brew services regenerates the LaunchAgents plist on every start —
-      do not put secrets only in the plist).
+      Edit identity (only):
 
-        mkdir -p ~/.homebrew/services
-        # see keystone.env.example on the tap / deploy/mac/homebrew/
-        brew services restart autrio10x/edge-rt/keystone
+        #{etc}/keystone/keystone.toml
 
-      Required env keys:
-        KEYSTONE_AUTRIO_URL, KEYSTONE_TENANT_ID, KEYSTONE_SERIAL,
-        KEYSTONE_BIRTH_SECRET, KEYSTONE_IPC_PATH, KEYSTONE_STORAGE_ROOT,
-        KEYSTONE_CREDENTIAL_DIR
+      Then:
 
-      Docker Desktop must be running (Pilot OCI probe).
+        brew services start autrio10x/edge-rt/keystone
+
+      Paths, supervisor, and keychain are package defaults.
+      Docker Desktop must be running (Pilot OCI).
+
+      Logs: #{var}/log/keystone.log
+           #{var}/log/keystone.err.log
 
       Uninstall:
         brew services stop autrio10x/edge-rt/keystone

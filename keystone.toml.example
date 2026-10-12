@@ -1,0 +1,11 @@
+# Keystone identity — installed as:
+#   $(brew --prefix)/etc/keystone/keystone.toml
+#
+# Package already sets paths, supervisor, and keychain in the brew service.
+# Fill the four identity fields, then:
+#   brew services start autrio10x/edge-rt/keystone
+
+autrio_url = "http://127.0.0.1:8002"
+tenant_id = "00000000-0000-0000-0000-000000000000"
+serial = "CHANGE_ME_SERIAL"
+birth_secret = "CHANGE_ME_BIRTH_SECRET"
