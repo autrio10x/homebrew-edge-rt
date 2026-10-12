@@ -99,7 +99,7 @@ class Keystone < Formula
       Logs: #{var}/log/keystone.log
            #{var}/log/keystone.err.log
 
-      Uninstall:
+      Uninstall (keystone-clean removes etc/var — brew will not):
         brew services stop autrio10x/edge-rt/keystone
         keystone-clean
         brew uninstall autrio10x/edge-rt/keystone

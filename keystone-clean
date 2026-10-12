@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
-# Wipe Keystone Keychain slots (call before `brew uninstall`).
-# Brew uninstall removes the package only — Keychain entries remain otherwise.
+# Full local purge for brew Keystone (run while the formula is still installed).
+#
+# Homebrew never deletes etc/ on `brew uninstall` (by design — protects operator
+# config). This helper removes Keychain + package etc/var so uninstall is clean.
+#
+#   brew services stop autrio10x/edge-rt/keystone
+#   keystone-clean
+#   brew uninstall autrio10x/edge-rt/keystone
 set -euo pipefail
+
+PREFIX="$(brew --prefix 2>/dev/null || echo /opt/homebrew)"
+ETC_DIR="${PREFIX}/etc/keystone"
+VAR_DIR="${PREFIX}/var/keystone"
+LOG_OUT="${PREFIX}/var/log/keystone.log"
+LOG_ERR="${PREFIX}/var/log/keystone.err.log"
+LAUNCH_AGENT="${HOME}/Library/LaunchAgents/sh.brew.keystone.plist"
 
 mac_keychain_delete_service() {
   local service="$1"
@@ -43,4 +56,19 @@ fi
 echo "removing macOS Keychain slots (com.autrio.keystone + legacy)"
 mac_keychain_delete_service "com.autrio.keystone"
 mac_keychain_delete_service "com.drivestream.keystone"
-echo "OK: Keychain wipe done — safe to brew uninstall autrio10x/edge-rt/keystone"
+
+if [[ -d "$ETC_DIR" ]]; then
+  echo "removing ${ETC_DIR}"
+  rm -rf "$ETC_DIR"
+fi
+if [[ -d "$VAR_DIR" ]]; then
+  echo "removing ${VAR_DIR}"
+  rm -rf "$VAR_DIR"
+fi
+rm -f "$LOG_OUT" "$LOG_ERR" 2>/dev/null || true
+if [[ -f "$LAUNCH_AGENT" ]]; then
+  echo "removing ${LAUNCH_AGENT}"
+  rm -f "$LAUNCH_AGENT"
+fi
+
+echo "OK: Keychain + etc/var purged — safe to: brew uninstall autrio10x/edge-rt/keystone"

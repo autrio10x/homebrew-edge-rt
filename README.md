@@ -44,7 +44,10 @@ birth_secret = "YOUR_BIRTH_SECRET"
 
 You do **not** create directories or set `KEYSTONE_IPC_PATH` / storage / creds.
 
-## Stop / uninstall
+## Stop / uninstall (fully clean)
+
+Homebrew **keeps** `etc/` on uninstall by design. Run `keystone-clean` **before**
+uninstall — it wipes Keychain, `etc/keystone`, `var/keystone`, and logs:
 
 ```bash
 brew services stop autrio10x/edge-rt/keystone
