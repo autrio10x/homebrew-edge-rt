@@ -17,28 +17,35 @@ mkdir -p /opt/homebrew/var/keystone/storage /opt/homebrew/var/keystone/creds
 Requires **Apple Silicon (arm64)**. Stable install downloads a published binary
 (no Rust toolchain needed).
 
-## Configure — edit the brew plist
+## Configure — `~/.homebrew/services/keystone.env`
 
-After the first `brew services start`, launchd uses a **copy** under LaunchAgents.
-Edit that live file (or edit the template and copy it over).
+`brew services start` **regenerates** `~/Library/LaunchAgents/sh.brew.keystone.plist`
+from the formula on every start/restart. Do **not** rely on editing that plist for
+identity — your edits are wiped.
 
-| | |
-|--|--|
-| **Live (what runs)** | `~/Library/LaunchAgents/sh.brew.keystone.plist` |
-| **Template (Cellar)** | `/opt/homebrew/opt/keystone/sh.brew.keystone.plist` |
+Use Homebrew’s supported env override file instead (persists across upgrades):
+
+**Path:** `~/.homebrew/services/keystone.env`
 
 ```bash
-# after editing the template:
-cp /opt/homebrew/opt/keystone/sh.brew.keystone.plist ~/Library/LaunchAgents/sh.brew.keystone.plist
+mkdir -p ~/.homebrew/services
+cat > ~/.homebrew/services/keystone.env <<'EOF'
+KEYSTONE_AUTRIO_URL=https://autrio.example.example
+KEYSTONE_TENANT_ID=00000000-0000-0000-0000-000000000000
+KEYSTONE_SERIAL=YOUR_DEVICE_SERIAL
+KEYSTONE_BIRTH_SECRET=YOUR_BIRTH_SECRET
+KEYSTONE_IPC_PATH=/opt/homebrew/var/keystone/runtime.sock
+KEYSTONE_STORAGE_ROOT=/opt/homebrew/var/keystone/storage
+KEYSTONE_CREDENTIAL_DIR=/opt/homebrew/var/keystone/creds
+EOF
+
 brew services restart autrio10x/edge-rt/keystone
 ```
 
-### Required `KEYSTONE_*` keys
+### Required keys
 
 | Key | Meaning |
 |-----|---------|
-| `KEYSTONE_SUPERVISOR` | `1` |
-| `KEYSTONE_KEYSTORE_BACKEND` | `keychain` |
 | `KEYSTONE_AUTRIO_URL` | Autrio base URL |
 | `KEYSTONE_TENANT_ID` | Tenant UUID |
 | `KEYSTONE_SERIAL` | Device serial |
@@ -47,68 +54,12 @@ brew services restart autrio10x/edge-rt/keystone
 | `KEYSTONE_STORAGE_ROOT` | e.g. `/opt/homebrew/var/keystone/storage` |
 | `KEYSTONE_CREDENTIAL_DIR` | e.g. `/opt/homebrew/var/keystone/creds` |
 
-### Full example plist
+Package defaults already set by the formula service: `KEYSTONE_SUPERVISOR=1`,
+`KEYSTONE_KEYSTORE_BACKEND=keychain`.
 
-Copy this into `~/Library/LaunchAgents/sh.brew.keystone.plist` (replace
-`YOUR_*` / example URL / tenant). Keep `Label` and paths as shown for a
-Homebrew prefix install:
+Example file in this repo: [`keystone.env.example`](keystone.env.example).
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>EnvironmentVariables</key>
-	<dict>
-		<key>KEYSTONE_SUPERVISOR</key>
-		<string>1</string>
-		<key>KEYSTONE_KEYSTORE_BACKEND</key>
-		<string>keychain</string>
-		<key>KEYSTONE_AUTRIO_URL</key>
-		<string>https://autrio.example.example</string>
-		<key>KEYSTONE_TENANT_ID</key>
-		<string>00000000-0000-0000-0000-000000000000</string>
-		<key>KEYSTONE_SERIAL</key>
-		<string>YOUR_DEVICE_SERIAL</string>
-		<key>KEYSTONE_BIRTH_SECRET</key>
-		<string>YOUR_BIRTH_SECRET</string>
-		<key>KEYSTONE_IPC_PATH</key>
-		<string>/opt/homebrew/var/keystone/runtime.sock</string>
-		<key>KEYSTONE_STORAGE_ROOT</key>
-		<string>/opt/homebrew/var/keystone/storage</string>
-		<key>KEYSTONE_CREDENTIAL_DIR</key>
-		<string>/opt/homebrew/var/keystone/creds</string>
-	</dict>
-	<key>KeepAlive</key>
-	<true/>
-	<key>Label</key>
-	<string>sh.brew.keystone</string>
-	<key>LimitLoadToSessionType</key>
-	<array>
-		<string>Aqua</string>
-		<string>Background</string>
-		<string>LoginWindow</string>
-		<string>StandardIO</string>
-		<string>System</string>
-	</array>
-	<key>ProgramArguments</key>
-	<array>
-		<string>/opt/homebrew/opt/keystone/bin/keystone</string>
-	</array>
-	<key>RunAtLoad</key>
-	<true/>
-	<key>StandardErrorPath</key>
-	<string>/opt/homebrew/var/log/keystone.err.log</string>
-	<key>StandardOutPath</key>
-	<string>/opt/homebrew/var/log/keystone.log</string>
-	<key>WorkingDirectory</key>
-	<string>/opt/homebrew/var/keystone</string>
-</dict>
-</plist>
-```
-
-`brew upgrade` / reinstall may reset the Cellar template — re-copy into
-LaunchAgents after upgrading.
+Optional full plist template (reference only): [`keystone.plist.example`](keystone.plist.example).
 
 ## Start / stop
 
@@ -133,14 +84,15 @@ brew services restart autrio10x/edge-rt/keystone
 brew services stop autrio10x/edge-rt/keystone
 keystone-clean
 brew uninstall autrio10x/edge-rt/keystone
+# optional: rm ~/.homebrew/services/keystone.env
 ```
 
 ## Troubleshooting
 
 | Symptom | Check |
 |---------|--------|
-| `missing_ipc_path` | Set `KEYSTONE_IPC_PATH` / `STORAGE_ROOT` / `CREDENTIAL_DIR` in the **LaunchAgents** plist |
-| Edits ignored | You edited Cellar only — copy to `~/Library/LaunchAgents/sh.brew.keystone.plist` then restart |
+| `missing_ipc_path` | Add paths to `~/.homebrew/services/keystone.env`, then `brew services restart` |
+| Edits to LaunchAgents ignored | Expected — use `keystone.env`, not the plist |
 | Wrong binary | `keystone --version` must show Autrio Keystone, not Homebrew-core assembler |
 
 ## Source / maintainers

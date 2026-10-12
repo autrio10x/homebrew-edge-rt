@@ -32,7 +32,9 @@ class Keystone < Formula
   service do
     run [opt_bin/"keystone"]
     environment_variables KEYSTONE_SUPERVISOR: "1",
-                          KEYSTONE_KEYSTORE_BACKEND: "keychain"
+                          KEYSTONE_KEYSTORE_BACKEND: "keychain",
+                          # launchd PATH is minimal — include Homebrew + Docker Desktop CLI.
+                          PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Applications/Docker.app/Contents/Resources/bin"
     keep_alive true
     log_path var/"log/keystone.log"
     error_log_path var/"log/keystone.err.log"
@@ -64,26 +66,25 @@ class Keystone < Formula
 
   def caveats
     <<~EOS
-      Configure identity in the brew service plist (same knobs as lab env):
+      Configure identity in ~/.homebrew/services/keystone.env
+      (brew services regenerates the LaunchAgents plist on every start —
+      do not put secrets only in the plist).
 
-        /opt/homebrew/opt/keystone/sh.brew.keystone.plist
+        mkdir -p ~/.homebrew/services
+        # see keystone.env.example on the tap / deploy/mac/homebrew/
+        brew services restart autrio10x/edge-rt/keystone
 
-      EnvironmentVariables (edit in place):
-        KEYSTONE_SUPERVISOR, KEYSTONE_KEYSTORE_BACKEND=keychain
-        KEYSTONE_AUTRIO_URL, KEYSTONE_TENANT_ID, KEYSTONE_SERIAL
-        KEYSTONE_BIRTH_SECRET
-        optional: KEYSTONE_IPC_PATH, KEYSTONE_STORAGE_ROOT, KEYSTONE_CREDENTIAL_DIR
+      Required env keys:
+        KEYSTONE_AUTRIO_URL, KEYSTONE_TENANT_ID, KEYSTONE_SERIAL,
+        KEYSTONE_BIRTH_SECRET, KEYSTONE_IPC_PATH, KEYSTONE_STORAGE_ROOT,
+        KEYSTONE_CREDENTIAL_DIR
 
-      Then:
-        brew services start autrio10x/edge-rt/keystone
-        keystone --version
+      Docker Desktop must be running (Pilot OCI probe).
 
-      Uninstall (wipe Keychain, then remove package):
+      Uninstall:
         brew services stop autrio10x/edge-rt/keystone
         keystone-clean
         brew uninstall autrio10x/edge-rt/keystone
-
-      See deploy/mac/README.md in the app repo.
     EOS
   end
 
