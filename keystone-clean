@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Wipe Keystone Keychain slots (call before `brew uninstall`).
+# Brew uninstall removes the package only — Keychain entries remain otherwise.
+set -euo pipefail
+
+mac_keychain_delete_service() {
+  local service="$1"
+  local n=0
+  local acct
+  for acct in \
+    join_secret_birth \
+    join_secret_operational \
+    access_token \
+    access_token_expires_at \
+    birth_cert \
+    birth_key \
+    operational_cert \
+    operational_key \
+    ca_chain \
+    domain_enrichment \
+    session_mqtt_auth; do
+    if security delete-generic-password -s "${service}" -a "${acct}" >/dev/null 2>&1; then
+      echo "  deleted -s ${service} -a ${acct}"
+      n=$((n + 1))
+    fi
+  done
+  while security delete-generic-password -s "${service}" >/dev/null 2>&1; do
+    echo "  deleted -s ${service} (remaining item)"
+    n=$((n + 1))
+    if [[ "${n}" -gt 64 ]]; then
+      echo "warn: stopped after 64 deletes for ${service}" >&2
+      break
+    fi
+  done
+  echo "keychain service ${service}: removed ${n} item(s)"
+}
+
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  echo "keystone-clean: macOS only" >&2
+  exit 2
+fi
+
+echo "removing macOS Keychain slots (com.autrio.keystone + legacy)"
+mac_keychain_delete_service "com.autrio.keystone"
+mac_keychain_delete_service "com.drivestream.keystone"
+echo "OK: Keychain wipe done — safe to brew uninstall autrio10x/edge-rt/keystone"
