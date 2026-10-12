@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Example LaunchAgent for brew-installed Keystone (autrio10x/edge-rt/keystone).
+
+  Live file after first start:
+    ~/Library/LaunchAgents/sh.brew.keystone.plist
+
+  Template from the formula:
+    /opt/homebrew/opt/keystone/sh.brew.keystone.plist
+
+  1. Replace YOUR_* placeholders below
+  2. mkdir -p /opt/homebrew/var/keystone/storage /opt/homebrew/var/keystone/creds
+  3. Copy to LaunchAgents (if editing this file or the opt template):
+       cp … ~/Library/LaunchAgents/sh.brew.keystone.plist
+  4. brew services restart autrio10x/edge-rt/keystone
+-->
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>KEYSTONE_SUPERVISOR</key>
+		<string>1</string>
+		<key>KEYSTONE_KEYSTORE_BACKEND</key>
+		<string>keychain</string>
+		<key>KEYSTONE_AUTRIO_URL</key>
+		<string>https://autrio.example.example</string>
+		<key>KEYSTONE_TENANT_ID</key>
+		<string>00000000-0000-0000-0000-000000000000</string>
+		<key>KEYSTONE_SERIAL</key>
+		<string>YOUR_DEVICE_SERIAL</string>
+		<key>KEYSTONE_BIRTH_SECRET</key>
+		<string>YOUR_BIRTH_SECRET</string>
+		<key>KEYSTONE_IPC_PATH</key>
+		<string>/opt/homebrew/var/keystone/runtime.sock</string>
+		<key>KEYSTONE_STORAGE_ROOT</key>
+		<string>/opt/homebrew/var/keystone/storage</string>
+		<key>KEYSTONE_CREDENTIAL_DIR</key>
+		<string>/opt/homebrew/var/keystone/creds</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>sh.brew.keystone</string>
+	<key>LimitLoadToSessionType</key>
+	<array>
+		<string>Aqua</string>
+		<string>Background</string>
+		<string>LoginWindow</string>
+		<string>StandardIO</string>
+		<string>System</string>
+	</array>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/opt/keystone/bin/keystone</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/opt/homebrew/var/log/keystone.err.log</string>
+	<key>StandardOutPath</key>
+	<string>/opt/homebrew/var/log/keystone.log</string>
+	<key>WorkingDirectory</key>
+	<string>/opt/homebrew/var/keystone</string>
+</dict>
+</plist>
