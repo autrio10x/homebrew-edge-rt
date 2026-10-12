@@ -107,5 +107,4 @@ brew uninstall autrio10x/edge-rt/keystone
 ## Source / maintainers
 
 - App source: https://github.com/autrio10x/keystone  
-- Release binaries: [Releases](https://github.com/autrio10x/homebrew-edge-rt/releases)  
-- Legacy tap `autrio10x/keystone` is retired — use **this** tap.
+- Release binaries: [Releases](https://github.com/autrio10x/homebrew-edge-rt/releases)
