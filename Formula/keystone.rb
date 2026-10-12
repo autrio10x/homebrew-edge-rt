@@ -49,10 +49,14 @@ class Keystone < Formula
       chmod "+x", "keystone"
       bin.install "keystone"
     end
-    # Tap-shipped wipe helper (stable path; also fills HEAD if repo copy missing).
-    helper = tap.path/"keystone-clean"
-    if helper.exist? && !(bin/"keystone-clean").exist?
-      bin.install helper
+    # Tap-shipped wipe helper — copy (do not bin.install from tap; EPERM on tap files).
+    unless (bin/"keystone-clean").exist?
+      helper = tap.path/"keystone-clean"
+      if helper.exist?
+        bin.mkpath
+        FileUtils.cp helper, bin/"keystone-clean"
+        chmod 0755, bin/"keystone-clean"
+      end
     end
     (var/"keystone").mkpath
     (var/"log").mkpath
