@@ -37,7 +37,7 @@ API socket accepts connections.
 
 ```toml
 autrio_url = "http://127.0.0.1:8002"
-tenant_id = "00000000-0000-0000-0000-000000000000"
+tenant_key = "helios_edge"
 serial = "YOUR_DEVICE_SERIAL"
 birth_secret = "YOUR_BIRTH_SECRET"
 ```

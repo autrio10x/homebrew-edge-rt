@@ -19,7 +19,7 @@ class Keystone < Formula
   url "https://github.com/autrio10x/homebrew-edge-rt/releases/download/keystone-v#{version}/keystone",
       using: :nounzip
   # Placeholder — publish-mac-bottle.sh overwrites this on the tap clone only.
-  sha256 "b09e74e0240c651fa3e1e340d242d880db9f372326e3138796dd3b218811b55c"
+  sha256 "f93afc64b87f4824954c8569bc3630c283778aa3caac00c14239f549252752a3"
 
   head do
     url "https://github.com/autrio10x/keystone.git", branch: "develop"
@@ -77,7 +77,7 @@ class Keystone < Formula
       # Then: brew services start autrio10x/edge-rt/keystone
 
       autrio_url = "http://127.0.0.1:8002"
-      tenant_id = "00000000-0000-0000-0000-000000000000"
+      tenant_key = "helios_edge"
       serial = "CHANGE_ME_SERIAL"
       birth_secret = "CHANGE_ME_BIRTH_SECRET"
     EOS
