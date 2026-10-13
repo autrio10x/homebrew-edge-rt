@@ -1,4 +1,5 @@
-# Reference formula — publish copies this to public tap autrio10x/homebrew-edge-rt.
+# Reference formula — publish copies this to public tap autrio10x/homebrew-edge-rt,
+# then stamps version + sha256 on the **tap** only (never mutates this file).
 #
 # Consumers:
 #   brew tap autrio10x/edge-rt
@@ -7,6 +8,7 @@
 #   brew services start autrio10x/edge-rt/keystone
 #
 # Maintainer: make bottle-mac && ./deploy/scripts/publish-mac-bottle.sh
+# Live bottle sha lives on the tap / GitHub Release — not in this template.
 
 class Keystone < Formula
   desc "Keystone host authority daemon (Autrio edge runtime)"
@@ -16,6 +18,7 @@ class Keystone < Formula
 
   url "https://github.com/autrio10x/homebrew-edge-rt/releases/download/keystone-v#{version}/keystone",
       using: :nounzip
+  # Placeholder — publish-mac-bottle.sh overwrites this on the tap clone only.
   sha256 "b09e74e0240c651fa3e1e340d242d880db9f372326e3138796dd3b218811b55c"
 
   head do
