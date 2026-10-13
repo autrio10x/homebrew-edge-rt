@@ -16,7 +16,7 @@ class Keystone < Formula
 
   url "https://github.com/autrio10x/homebrew-edge-rt/releases/download/keystone-v#{version}/keystone",
       using: :nounzip
-  sha256 "7e978e87e94460aa3b2a2938b5a4a08bcc7858a36c7ff918293127a881747d5b"
+  sha256 "b09e74e0240c651fa3e1e340d242d880db9f372326e3138796dd3b218811b55c"
 
   head do
     url "https://github.com/autrio10x/keystone.git", branch: "develop"
