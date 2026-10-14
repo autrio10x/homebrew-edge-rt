@@ -19,7 +19,7 @@ class Keystone < Formula
   url "https://github.com/autrio10x/homebrew-edge-rt/releases/download/keystone-v#{version}/keystone",
       using: :nounzip
   # Placeholder — publish-mac-bottle.sh overwrites this on the tap clone only.
-  sha256 "c06650540ad2f44a98bb0e3fb4298eaddf9af303aafdaf108e0bb4900f7c415c"
+  sha256 "cce2cf97c564fa7100b1508575bd16a233c8fe6758812b0f7b44a1039c23216a"
 
   head do
     url "https://github.com/autrio10x/keystone.git", branch: "develop"
